@@ -71,16 +71,13 @@ const handleViewSwitch = () => {
   );
 
   const toggleFavorite = (recipe) => {
-    // Check if the recipe is already a favorite
     const isFavorite = favoriteRecipes.some((favRecipe) => favRecipe.title === recipe.title);
 
     if (isFavorite) {
-      // Remove from favorites
       setFavoriteRecipes((prevFavorites) =>
         prevFavorites.filter((favRecipe) => favRecipe.title !== recipe.title)
       );
     } else {
-      // Add to favorites
       setFavoriteRecipes((prevFavorites) => [...prevFavorites, recipe]);
     }
   };
@@ -147,16 +144,16 @@ const styles = StyleSheet.create({
   recipeContainer: {
     backgroundColor: '#ffffff',
     borderRadius: 8,
-    margin: 8, // Lägger till margin runt innehållet
-    padding: 16, // Lägger till padding för att ge avstånd mellan innehåll och bakgrund
+    margin: 8,
+    padding: 16, 
   },
   container: {
     flex: 1,
-    backgroundColor: '#f0f0f0', // Light gray background
+    backgroundColor: '#f0f0f0', 
     padding: 16,
   },
   title: {
-    color: 'black', // Black text
+    color: 'black', 
     fontSize: 32,
     fontWeight: 'bold',
     marginBottom: 35,
@@ -170,26 +167,26 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tabButton: {
-    backgroundColor: '#ABB0B8', // Dark pink button
+    backgroundColor: '#ABB0B8', 
     padding: 8,
     borderRadius: 20,
     marginRight: 8,
     marginTop: 65,
   },
   tabButtonText: {
-    color: 'white', // Black text
+    color: 'white',
     textAlign: 'center',
   },
   recipeTitle: {
-    color: 'black', // Black text
+    color: 'black', 
     fontSize: 20,
     fontWeight: 'bold',
   },
   recipeIngredients: {
-    color: '#666666', // Dark gray text
+    color: '#666666', 
   },
   favoriteButton: {
-    backgroundColor: '#ff4081', // Dark pink button
+    backgroundColor: '#ff4081', 
     padding: 8,
     borderRadius: 4,
     marginTop: 8,
