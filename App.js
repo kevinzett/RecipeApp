@@ -1,20 +1,223 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, FlatList, StyleSheet, ImageBackground } from 'react-native';
+import AddRecipeModal from './components/AddRecipeModal';
+
+const initialRecipes = [
+  { title: 'Pasta Carbonara', ingredients: ['400g Pasta', '200g Bacon', '4Eggs', '150g Parmesan'] },
+  { title: 'Chocolate Chip Cookies', ingredients: ['4dl Flour', '2dl Sugar', '100g Butter', '40g Chocolate Chips'] },
+  { title: 'Potato gnocchi', ingredients: ['red delight potato', 'plain flour', 'egg', 'salt and pepper'] },
+  { title: 'Coconut Jam Drops', ingredients: ['condensed milk', 'desiccated coconut', 'Strawberry jam', 'Salt'] },
+  { title: 'Easy Pizza', ingredients: ['self-raising flour', 'parmesan cheese', 'vegetable oil', 'boiling water'] },
+];
+
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+  const [displayedRecipes, setDisplayedRecipes] = useState(initialRecipes);
+  const [isDisplayingFavorites, setIsDisplayingFavorites] = useState(false);
+  const [favoriteRecipes, setFavoriteRecipes] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [newRecipes, setNewRecipes] = useState([]);
+  const [activeView, setActiveView] = useState('Alla');
+
+const handleViewSwitch = () => {
+  setActiveView((prevView) => (prevView === 'Alla' ? 'Favoriter' : 'Alla'));
+};
+
+  const handleAllRecipes = () => {
+    setDisplayedRecipes([...initialRecipes, ...newRecipes]);
+    setIsDisplayingFavorites(false);
+  };
+
+  useEffect(() => {
+    if (isDisplayingFavorites) {
+      setDisplayedRecipes(favoriteRecipes);
+    } else {
+      setDisplayedRecipes([...initialRecipes, ...newRecipes]);
+    }
+  }, [isDisplayingFavorites, newRecipes]);
+
+  useEffect(() => {
+    if (isDisplayingFavorites) {
+      setDisplayedRecipes(favoriteRecipes);
+    }
+  }, [favoriteRecipes]);
+
+  const handleFavoriteRecipes = () => {
+    setDisplayedRecipes(favoriteRecipes);
+    setIsDisplayingFavorites(true);
+  };
+
+  const handleRemoveFavorite = (recipe) => {
+    setFavoriteRecipes((prevFavorites) =>
+      prevFavorites.filter((favRecipe) => favRecipe.title !== recipe.title)
+    );
+  };
+
+  const renderFavoriteItem = ({ item }) => (
+    <View style={[styles.recipeItem, styles.recipeContainer]}>
+      <Text style={styles.recipeTitle}>{item.title}</Text>
+      <Text style={styles.recipeIngredients}>{item.ingredients.join(', ')}</Text>
+      {isDisplayingFavorites && (
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.favoriteButton, styles.removeButton]}
+            onPress={() => handleRemoveFavorite(item)}
+          >
+            <Text style={styles.favoriteButtonText}>Ta bort</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
+
+  const toggleFavorite = (recipe) => {
+    // Check if the recipe is already a favorite
+    const isFavorite = favoriteRecipes.some((favRecipe) => favRecipe.title === recipe.title);
+
+    if (isFavorite) {
+      // Remove from favorites
+      setFavoriteRecipes((prevFavorites) =>
+        prevFavorites.filter((favRecipe) => favRecipe.title !== recipe.title)
+      );
+    } else {
+      // Add to favorites
+      setFavoriteRecipes((prevFavorites) => [...prevFavorites, recipe]);
+    }
+  };
+
+  const renderItem = ({ item }) => (
+    <View style={[styles.recipeItem, styles.recipeContainer]}>
+      <Text style={styles.recipeTitle}>{item.title}</Text>
+      <Text style={styles.recipeIngredients}>{item.ingredients.join(', ')}</Text>
+      {!isDisplayingFavorites && (
+        <TouchableOpacity style={styles.favoriteButton} onPress={() => toggleFavorite(item)}>
+          <Text style={styles.favoriteButtonText}>Favorite</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  const handleAddRecipe = (newRecipe) => {
+    setNewRecipes((prevNewRecipes) => [...prevNewRecipes, newRecipe]);
+    setIsModalVisible(false);
+  };
+
+  return (
+      <View style={styles.container}>
+        <View style={styles.recipeHeader}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeView === 'Alla' ? styles.activeTabButton : null]}
+            onPress={() => {
+              handleAllRecipes();
+              handleViewSwitch();
+            }}
+          >
+            <Text style={styles.tabButtonText}>Alla</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeView === 'Favoriter' ? styles.activeTabButton : null]}
+            onPress={() => {
+              handleFavoriteRecipes();
+              handleViewSwitch();
+            }}
+          >
+            <Text style={styles.tabButtonText}>Favoriter</Text>
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.title}>Recept</Text>
+        <FlatList
+          data={displayedRecipes}
+          renderItem={isDisplayingFavorites ? renderFavoriteItem : renderItem}
+          keyExtractor={(item, index) => index.toString()}
+        />
+        <TouchableOpacity style={styles.addButton} onPress={() => setIsModalVisible(true)}>
+          <Text style={styles.addButtonText}>Lägg till recept</Text>
+        </TouchableOpacity>
+        <AddRecipeModal
+          isVisible={isModalVisible}
+          onClose={() => setIsModalVisible(false)}
+          onAddRecipe={handleAddRecipe}
+        />
+      </View>
+  );
+
 }
 
 const styles = StyleSheet.create({
+  recipeContainer: {
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
+    margin: 8, // Lägger till margin runt innehållet
+    padding: 16, // Lägger till padding för att ge avstånd mellan innehåll och bakgrund
+  },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: '#f0f0f0', // Light gray background
+    padding: 16,
+  },
+  title: {
+    color: 'black', // Black text
+    fontSize: 32,
+    fontWeight: 'bold',
+    marginBottom: 35,
+  },
+  recipeItem: {
+    marginBottom: 16,
+  },
+  recipeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginBottom: 8,
+  },
+  tabButton: {
+    backgroundColor: '#ABB0B8', // Dark pink button
+    padding: 8,
+    borderRadius: 20,
+    marginRight: 8,
+    marginTop: 65,
+  },
+  tabButtonText: {
+    color: 'white', // Black text
+    textAlign: 'center',
+  },
+  recipeTitle: {
+    color: 'black', // Black text
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  recipeIngredients: {
+    color: '#666666', // Dark gray text
+  },
+  favoriteButton: {
+    backgroundColor: '#ff4081', // Dark pink button
+    padding: 8,
+    borderRadius: 4,
+    marginTop: 8,
+  },
+  favoriteButtonText: {
+    color: 'white', 
+    textAlign: 'center',
+  },
+  removeButton: {
+    backgroundColor: 'red',
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    marginTop: 8,
+  },
+  addButton: {
+    backgroundColor: '#50C878',
+    padding: 8,
+    borderRadius: 4,
+    marginTop: 8,
+    marginBottom: 20,
+  },
+  addButtonText: {
+    color: 'white', 
+    textAlign: 'center',
+  },
+  activeTabButton: {
+    backgroundColor: 'rgba(255, 64, 129, 0.3)', 
   },
 });
